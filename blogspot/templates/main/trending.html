@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Trending Posts{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Trending Posts</h2>
+
+{% for post in posts.items %}
+    <div class="card post-card col-lg-8 offset-2">
+        {% if post.images %}
+            <img src="{{ url_for('static', filename='uploads/' + post.images[0].filename) }}" class="card-img-top post-image" alt="Blog image">
+        {% endif %}
+        <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.content[:200] }}...</p>
+            <div class="post-actions">
+                <div>
+                    <a href="{{ url_for('main.post', post_id=post.id) }}" class="btn btn-primary">Read More</a>
+                    <button class="like-btn" data-post-id="{{ post.id }}">
+                        <i class="fas fa-heart"></i>
+                        <span class="like-count">{{ post.likes|length }}</span>
+                    </button>
+                </div>
+                <small class="text-muted">
+                    Posted by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d') }}
+                </small>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<div class="d-flex justify-content-center mt-4">
+    {% if posts.has_prev %}
+        <a href="{{ url_for('main.trending', page=posts.prev_num) }}" class="btn btn-outline-primary me-2">&laquo; Previous</a>
+    {% endif %}
+    {% if posts.has_next %}
+        <a href="{{ url_for('main.trending', page=posts.next_num) }}" class="btn btn-outline-primary">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endblock %}

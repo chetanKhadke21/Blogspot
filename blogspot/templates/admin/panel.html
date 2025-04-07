@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-stats">
+    <div class="stat-card">
+        <h3>{{ stats.users }}</h3>
+        <p>Total Users</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.total_posts }}</h3>
+        <p>Total Posts</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.approved_posts }}</h3>
+        <p>Approved Posts</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ stats.pending_posts }}</h3>
+        <p>Pending Posts</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <form method="GET" class="d-flex">
+                    <input type="text" name="search" class="form-control me-2" placeholder="Search blogs..." value="{{ request.args.get('search', '') }}">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <select class="form-select" onchange="window.location.href=this.value">
+                    <option value="{{ url_for('admin.admin_panel') }}" {% if not request.args.get('status') %}selected{% endif %}>All Posts</option>
+                    <option value="{{ url_for('admin.admin_panel', status='approved') }}" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Approved Posts</option>
+                    <option value="{{ url_for('admin.admin_panel', status='unapproved') }}" {% if request.args.get('status') == 'unapproved' %}selected{% endif %}>Unapproved Posts</option>
+                </select>
+            </div>
+        </div>
+
+        {% for post in posts.items %}
+            <div class="card mb-3">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        {% if post.images %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.images[0].filename) }}" class="img-fluid rounded-start post-image" alt="Blog image">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <p class="card-text">{{ post.content[:200] }}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{{ url_for('main.post', post_id=post.id) }}" class="btn btn-primary btn-sm">Read More</a>
+                                    {% if not post.approved %}
+                                        <form action="{{ url_for('admin.approve_post', post_id=post.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+                                    {% endif %}
+                                    <form action="{{ url_for('main.delete_post', post_id=post.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
+                                    </form>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-heart text-danger"></i> {{ post.likes|length }}
+                                        <span class="ms-2">By {{ post.author.username }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-center mt-4">
+            {% if posts.has_prev %}
+                <a href="{{ url_for('admin.admin_panel', page=posts.prev_num, status=request.args.get('status'), search=request.args.get('search')) }}" class="btn btn-outline-primary me-2">&laquo; Previous</a>
+            {% endif %}
+            {% if posts.has_next %}
+                <a href="{{ url_for('admin.admin_panel', page=posts.next_num, status=request.args.get('status'), search=request.args.get('search')) }}" class="btn btn-outline-primary">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
